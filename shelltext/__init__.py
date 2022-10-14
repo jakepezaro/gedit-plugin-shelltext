@@ -11,17 +11,11 @@ class AppActivatable(GObject.Object, Gedit.AppActivatable):
 
     def __init__(self):
         GObject.Object.__init__(self)
-        self.menu = None
 
     def do_activate(self):
         self.tools_section = self.extend_menu("tools-section-1")
-        external_tools_submenu = Gio.Menu()
-        item = Gio.MenuItem.new_submenu(_("ZZZZZZZExternal ToolsXXX"), external_tools_submenu)
-        external_tools_submenu_section = Gio.Menu()
-        external_tools_submenu.append_section(None, external_tools_submenu_section)
-        self.tools_section.append_menu_item(item)
-        self.menu = external_tools_submenu_section
+        shelltext_menu_item = Gio.MenuItem.new('ShellText', 'run_shelltext')
+        self.tools_section.append_menu_item(shelltext_menu_item)
 
     def do_deactivate(self):
-        self.menu.remove_all()
-        self.tools_section = None
+        self.tools_section.remove_items()
