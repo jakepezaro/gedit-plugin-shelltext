@@ -14,8 +14,29 @@ class AppActivatable(GObject.Object, Gedit.AppActivatable):
 
     def do_activate(self):
         self.tools_section = self.extend_menu("tools-section-1")
-        shelltext_menu_item = Gio.MenuItem.new('ShellText', 'run_shelltext')
+        shelltext_menu_item = Gio.MenuItem.new('ShellText', 'win.shelltext')
         self.tools_section.append_menu_item(shelltext_menu_item)
 
     def do_deactivate(self):
         self.tools_section.remove_items()
+        
+
+class WindowActivatable(GObject.Object, Gedit.WindowActivatable):
+    __gtype_name__ = "ExternalToolsWindowActivatable"
+
+    window = GObject.Property(type=Gedit.Window)
+
+    def __init__(self):
+        GObject.Object.__init__(self)
+
+    def do_activate(self):
+        action = Gio.SimpleAction(name='shelltext')
+        action.connect('activate', run_shelltext)
+        self.window.add_action(action)
+
+    def do_deactivate(self):
+        self.window.remove_action('shelltext')
+        
+        
+def run_shelltext(action, parameters):
+    print('running shelltext')
