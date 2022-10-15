@@ -16,9 +16,11 @@ class AppActivatable(GObject.Object, Gedit.AppActivatable):
         self.tools_section = self.extend_menu("tools-section-1")
         shelltext_menu_item = Gio.MenuItem.new('ShellText', 'win.shelltext')
         self.tools_section.append_menu_item(shelltext_menu_item)
+        self.app.add_accelerator('<Control><Shift>R', 'win.shelltext', None)
 
     def do_deactivate(self):
         self.tools_section.remove_items()
+        self.app.remove_accelerator('win.shelltext', None)
         
 
 class WindowActivatable(GObject.Object, Gedit.WindowActivatable):
