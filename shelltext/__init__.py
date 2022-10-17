@@ -39,6 +39,28 @@ class WindowActivatable(GObject.Object, Gedit.WindowActivatable):
     def do_deactivate(self):
         self.window.remove_action('shelltext')
         
+
+dialog_spec = '''<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="shelltext-dialog">
+    <property name="can_focus">False</property>
+    <child>
+      <object class="GtkButton" id="button1">
+        <property name="label" translatable="yes">button</property>
+        <property name="use-action-appearance">False</property>
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="receives-default">True</property>
+      </object>
+    </child>
+  </object>
+</interface>'''      
+        
         
 def run_shelltext(action, parameters):
     print('running shelltext')
+    builder = Gtk.Builder()
+    builder.add_from_string(dialog_spec)
+    window = builder.get_object("shelltext-dialog")
+    window.show_all()
+    print('done')
