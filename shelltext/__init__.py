@@ -45,12 +45,101 @@ dialog_spec = '''<?xml version="1.0" encoding="UTF-8"?>
   <object class="GtkWindow" id="shelltext-dialog">
     <property name="can_focus">False</property>
     <child>
-      <object class="GtkButton" id="button1">
-        <property name="label" translatable="yes">button</property>
-        <property name="use-action-appearance">False</property>
-        <property name="visible">True</property>
-        <property name="can-focus">True</property>
-        <property name="receives-default">True</property>
+      <object class="GtkGrid" id="my_grid">
+        <property name="column-spacing">10</property>
+        <property name="row-spacing">10</property>
+        <property name="margin-start">5</property>
+        <property name="margin-end">5</property>
+        <property name="margin-top">5</property>
+        <property name="margin-bottom">5</property>
+      
+        <child>
+          <object class="GtkLabel" id="source-label">
+            <property name="label">Source</property>  
+          </object>
+          <packing>
+              <property name="left-attach">0</property>
+              <property name="top-attach">0</property>
+          </packing>        
+        </child>
+        <child>
+          <object class="GtkComboBoxText">
+            <items>
+              <item translatable="yes" id="from_selection">Selection</item>
+              <item translatable="yes" id="from_document">Document</item>
+            </items>
+          </object>
+          <packing>
+            <property name="left-attach">1</property>
+            <property name="top-attach">0</property>
+          </packing>        
+        </child>
+        
+        <child>
+          <object class="GtkLabel" id="destination-label">
+            <property name="label">Destination</property>  
+          </object>
+          <packing>
+              <property name="left-attach">0</property>
+              <property name="top-attach">1</property>
+          </packing>        
+        </child>
+        <child>
+          <object class="GtkComboBoxText">
+            <items>
+              <item translatable="yes" id="to_selection">Selection</item>
+              <item translatable="yes" id="to_document">Document</item>
+            </items>
+          </object>
+          <packing>
+            <property name="left-attach">1</property>
+            <property name="top-attach">1</property>
+          </packing>        
+        </child>
+        
+        <child>
+          <object class="GtkTextView" id="commands">
+            <property name="expand">True</property>
+          </object>
+          <packing>
+            <property name="left-attach">2</property>
+            <property name="top-attach">0</property>
+            <property name="height">2</property>
+            <property name="width">2</property>
+          </packing>
+        </child>
+        
+        <child>
+          <object class="GtkLabel" id="history-label">
+            <property name="label">History</property>  
+          </object>
+          <packing>
+              <property name="left-attach">0</property>
+              <property name="top-attach">3</property>
+          </packing>        
+        </child>
+        <child>
+          <object class="GtkComboBoxText">
+            <property name="hexpand">True</property>
+            <items>
+              <item translatable="yes" id="history">...</item>
+            </items>
+          </object>
+          <packing>
+            <property name="left-attach">2</property>
+            <property name="top-attach">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="execute">
+            <property name="label">Execute</property>  
+          </object>
+          <packing>
+              <property name="left-attach">3</property>
+              <property name="top-attach">3</property>
+          </packing>        
+        </child>        
+        
       </object>
     </child>
   </object>
