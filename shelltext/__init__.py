@@ -33,7 +33,7 @@ class WindowActivatable(GObject.Object, Gedit.WindowActivatable):
 
     def do_activate(self):
         action = Gio.SimpleAction(name='shelltext')
-        action.connect('activate', run_shelltext)
+        action.connect('activate', run_shelltext, self.window)
         self.window.add_action(action)
 
     def do_deactivate(self):
@@ -111,7 +111,7 @@ dialog_spec = '''<?xml version="1.0" encoding="UTF-8"?>
         </child>
         
         <child>
-          <object class="GtkTextView" id="commands">
+          <object class="GtkTextView" id="shelltext-command">
             <property name="expand">True</property>
           </object>
           <packing>
@@ -145,7 +145,8 @@ dialog_spec = '''<?xml version="1.0" encoding="UTF-8"?>
         </child>
         <child>
           <object class="GtkButton" id="execute">
-            <property name="label">Execute</property>  
+            <property name="label">Execute</property>
+            <signal name="pressed" handler="shelltext-execute" swapped="no"/>
           </object>
           <packing>
               <property name="left-attach">3</property>
@@ -159,8 +160,19 @@ dialog_spec = '''<?xml version="1.0" encoding="UTF-8"?>
 </interface>'''      
         
         
-def run_shelltext(action, parameters):
+def run_shelltext(action, parameters, window):
+    doc = window.get_active_document()
+    print(type(doc))
     builder = Gtk.Builder()
     builder.add_from_string(dialog_spec)
+    cmd = builder.get_object("shelltext-command")
+    builder.connect_signals({
+        "shelltext-execute": lambda _: shelltext_execute(cmd.get_buffer())
+    })
     window = builder.get_object("shelltext-dialog")
     window.show_all()
+    
+def shelltext_execute(buffer):
+    startIter, endIter = buffer.get_bounds()   
+    text = buffer.get_text(startIter, endIter, False) 
+    print(f'EXECUTE: ${text}')
