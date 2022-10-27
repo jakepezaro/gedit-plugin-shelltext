@@ -39,7 +39,7 @@ class WindowActivatable(GObject.Object, Gedit.WindowActivatable):
     def do_deactivate(self):
         self.window.remove_action('shelltext')
         
-
+        
 dialog_spec = '''<?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <object class="GtkWindow" id="shelltext-dialog">
@@ -144,7 +144,7 @@ dialog_spec = '''<?xml version="1.0" encoding="UTF-8"?>
           </packing>
         </child>
         <child>
-          <object class="GtkButton" id="execute">
+          <object class="GtkButton" id="execute-button">
             <property name="label">Execute</property>
             <signal name="pressed" handler="shelltext-execute" swapped="no"/>
           </object>
@@ -158,21 +158,54 @@ dialog_spec = '''<?xml version="1.0" encoding="UTF-8"?>
     </child>
   </object>
 </interface>'''      
+    
+    
+class TextSelectionWatcher:
+    
+    def __init__(self, window, widget):
+        self.window = window
+        self.document = window.get_active_document()
+        self.widget = widget
+        self.window_connection = self.window.connect('notify', self._on_window_notify)
+        self.document_connection = self.document.connect('notify', self._on_document_notify)
+        self._on_selection()
         
+    def _on_window_notify(self, window, paramspec):
+        if paramspec.name == 'title':
+            self.document.disconnect(self.document_connection)
+            self.document = window.get_active_document()
+            self.document_connection = self.document.connect('notify', self._on_document_notify)
+            self._on_selection()
+    
+    def _on_document_notify(self, document, paramspec):
+        if paramspec.name == 'has-selection':
+            self._on_selection()
+    
+    def _on_selection(self):
+        self.widget.set_sensitive(self.document.get_has_selection())
         
+    
+    def disconnect(self, window):
+        self.document.disconnect(self.document_connection)
+        self.window.disconnect(self.window_connection)
+
+
 def run_shelltext(action, parameters, window):
-    doc = window.get_active_document()
-    print(type(doc))
     builder = Gtk.Builder()
     builder.add_from_string(dialog_spec)
     cmd = builder.get_object("shelltext-command")
     builder.connect_signals({
-        "shelltext-execute": lambda _: shelltext_execute(cmd.get_buffer())
+        "shelltext-execute": lambda _: shelltext_execute(cmd.get_buffer(), window)
     })
-    window = builder.get_object("shelltext-dialog")
-    window.show_all()
     
-def shelltext_execute(buffer):
-    startIter, endIter = buffer.get_bounds()   
-    text = buffer.get_text(startIter, endIter, False) 
-    print(f'EXECUTE: ${text}')
+    selection_watcher = TextSelectionWatcher(window, builder.get_object("execute-button"))
+    
+    dialog_window = builder.get_object("shelltext-dialog")
+    dialog_window.connect('destroy', selection_watcher.disconnect)
+    dialog_window.show_all()
+    
+    
+def shelltext_execute(command_buffer, window):
+    startIter, endIter = command_buffer.get_bounds()   
+    command = command_buffer.get_text(startIter, endIter, False) 
+    print(f'EXECUTE: ${command}')
