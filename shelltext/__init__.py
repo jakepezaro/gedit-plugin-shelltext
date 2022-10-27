@@ -162,46 +162,50 @@ dialog_spec = '''<?xml version="1.0" encoding="UTF-8"?>
     
 class TextSelectionWatcher:
     
-    def __init__(self, window, widget):
-        self.window = window
-        self.document = window.get_active_document()
-        self.widget = widget
-        self.window_connection = self.window.connect('notify', self._on_window_notify)
+    def __init__(self, gedit_window, execute_button):
+        self.gedit_window = gedit_window
+        self.document = gedit_window.get_active_document()
+        self.execute_button = execute_button
+        self.window_connection = self.gedit_window.connect('notify', self._on_window_notify)
         self.document_connection = self.document.connect('notify', self._on_document_notify)
         self._on_selection()
         
-    def _on_window_notify(self, window, paramspec):
+    def _on_window_notify(self, gedit_window, paramspec):
         if paramspec.name == 'title':
             self.document.disconnect(self.document_connection)
-            self.document = window.get_active_document()
-            self.document_connection = self.document.connect('notify', self._on_document_notify)
-            self._on_selection()
+            self.document = self.gedit_window.get_active_document()
+            if self.document:
+                self.document_connection = self.document.connect('notify', self._on_document_notify)
+                self._on_selection()
     
     def _on_document_notify(self, document, paramspec):
         if paramspec.name == 'has-selection':
             self._on_selection()
     
     def _on_selection(self):
-        self.widget.set_sensitive(self.document.get_has_selection())
+        self.execute_button.set_sensitive(self.document.get_has_selection())
         
     
-    def disconnect(self, window):
-        self.document.disconnect(self.document_connection)
-        self.window.disconnect(self.window_connection)
+    def disconnect(self, dialog_window):
+        if self.document:
+            self.document.disconnect(self.document_connection)
+        if self.gedit_window:            
+            self.gedit_window.disconnect(self.window_connection)      
 
 
-def run_shelltext(action, parameters, window):
+def run_shelltext(action, parameters, gedit_window):
     builder = Gtk.Builder()
     builder.add_from_string(dialog_spec)
     cmd = builder.get_object("shelltext-command")
     builder.connect_signals({
-        "shelltext-execute": lambda _: shelltext_execute(cmd.get_buffer(), window)
+        "shelltext-execute": lambda _: shelltext_execute(cmd.get_buffer(), gedit_window)
     })
     
-    selection_watcher = TextSelectionWatcher(window, builder.get_object("execute-button"))
+    selection_watcher = TextSelectionWatcher(gedit_window, builder.get_object("execute-button"))
     
     dialog_window = builder.get_object("shelltext-dialog")
     dialog_window.connect('destroy', selection_watcher.disconnect)
+    gedit_window.connect('destroy', selection_watcher.disconnect)
     dialog_window.show_all()
     
     
