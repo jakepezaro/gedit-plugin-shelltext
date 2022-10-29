@@ -67,8 +67,8 @@ dialog_spec = '''<?xml version="1.0" encoding="UTF-8"?>
         <child>
           <object class="GtkComboBoxText" id="source-combo">
             <items>
-              <item translatable="yes" id="from_selection">Selection</item>
-              <item translatable="yes" id="from_document">Document</item>
+              <item translatable="yes" id="from-selection">Selection</item>
+              <item translatable="yes" id="from-document">Document</item>
             </items>
           </object>
           <packing>
@@ -89,8 +89,8 @@ dialog_spec = '''<?xml version="1.0" encoding="UTF-8"?>
         <child>
           <object class="GtkComboBoxText" id="destination-combo">
             <items>
-              <item translatable="yes" id="to_selection">Selection</item>
-              <item translatable="yes" id="to_document">Document</item>
+              <item translatable="yes" id="to-selection">Selection</item>
+              <item translatable="yes" id="to-document">Document</item>
             </items>
           </object>
           <packing>
@@ -197,11 +197,12 @@ def run_shelltext(action, parameters, gedit_window):
     builder = Gtk.Builder()
     builder.add_from_string(dialog_spec)
     cmd = builder.get_object("shelltext-command")
+    
     builder.connect_signals({
         "shelltext-execute": lambda _: shelltext_execute(cmd.get_buffer(), gedit_window)
     })
     
-    selection_watcher = TextSelectionWatcher(gedit_window, builder.get_object("execute-button"))
+    selection_watcher = TextSelectionWatcher(gedit_window, builder.get_object("execute-button"), builder.get_object("source-combo"))
     
     dialog_window = builder.get_object("shelltext-dialog")
     dialog_window.connect('destroy', selection_watcher.disconnect)
@@ -209,7 +210,8 @@ def run_shelltext(action, parameters, gedit_window):
     dialog_window.show_all()
     
     
-def shelltext_execute(command_buffer, window):
+def shelltext_execute(command_buffer, window, source):
     startIter, endIter = command_buffer.get_bounds()   
     command = command_buffer.get_text(startIter, endIter, False) 
     print(f'EXECUTE: ${command}')
+    print(type(source), source.get_active_id())
