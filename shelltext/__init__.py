@@ -162,12 +162,14 @@ dialog_spec = '''<?xml version="1.0" encoding="UTF-8"?>
     
 class TextSelectionWatcher:
     
-    def __init__(self, gedit_window, execute_button):
+    def __init__(self, gedit_window, execute_button, source_combo):
         self.gedit_window = gedit_window
         self.document = gedit_window.get_active_document()
         self.execute_button = execute_button
+        self.source_combo = source_combo
         self.window_connection = self.gedit_window.connect('notify', self._on_window_notify)
         self.document_connection = self.document.connect('notify', self._on_document_notify)
+        self.source_combo_connection = self.source_combo.connect('changed', lambda _: self._on_selection())
         self._on_selection()
         
     def _on_window_notify(self, gedit_window, paramspec):
@@ -181,16 +183,25 @@ class TextSelectionWatcher:
     def _on_document_notify(self, document, paramspec):
         if paramspec.name == 'has-selection':
             self._on_selection()
-    
+
     def _on_selection(self):
-        self.execute_button.set_sensitive(self.document.get_has_selection())
+        source = self.source_combo.get_active_id() 
+        if source == 'from-document':
+            enabled = True
+        elif source == 'from-selection' and self.document.get_has_selection():
+            enabled = True
+        else:
+            enabled = False
+        self.execute_button.set_sensitive(enabled)
         
     
     def disconnect(self, dialog_window):
         if self.document:
             self.document.disconnect(self.document_connection)
         if self.gedit_window:            
-            self.gedit_window.disconnect(self.window_connection)      
+            self.gedit_window.disconnect(self.window_connection)
+        if self.source_combo:
+            self.source_combo.disconnect(self.source_combo_connection)
 
 
 def run_shelltext(action, parameters, gedit_window):
@@ -210,8 +221,7 @@ def run_shelltext(action, parameters, gedit_window):
     dialog_window.show_all()
     
     
-def shelltext_execute(command_buffer, window, source):
+def shelltext_execute(command_buffer, window):
     startIter, endIter = command_buffer.get_bounds()   
     command = command_buffer.get_text(startIter, endIter, False) 
     print(f'EXECUTE: ${command}')
-    print(type(source), source.get_active_id())
