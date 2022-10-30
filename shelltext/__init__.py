@@ -193,7 +193,16 @@ class TextSelectionWatcher:
         else:
             enabled = False
         self.execute_button.set_sensitive(enabled)
-        
+
+    def get_source_text(self):
+        source = self.source_combo.get_active_id()
+        if source == 'from-document':
+           start = self.document.get_start_iter()
+           end = self.document.get_end_iter()
+           return self.document.get_text(start, end, False)
+        if source == 'from-selection' and self.document.get_has_selection():
+           start, end = self.document.get_selection_bounds()
+           return self.document.get_text(start, end, False)
     
     def disconnect(self, dialog_window):
         if self.document:
@@ -208,12 +217,12 @@ def run_shelltext(action, parameters, gedit_window):
     builder = Gtk.Builder()
     builder.add_from_string(dialog_spec)
     cmd = builder.get_object("shelltext-command")
-    
-    builder.connect_signals({
-        "shelltext-execute": lambda _: shelltext_execute(cmd.get_buffer(), gedit_window)
-    })
-    
+
     selection_watcher = TextSelectionWatcher(gedit_window, builder.get_object("execute-button"), builder.get_object("source-combo"))
+
+    builder.connect_signals({
+        "shelltext-execute": lambda _: shelltext_execute(cmd.get_buffer(), selection_watcher)
+    })
     
     dialog_window = builder.get_object("shelltext-dialog")
     dialog_window.connect('destroy', selection_watcher.disconnect)
@@ -221,7 +230,15 @@ def run_shelltext(action, parameters, gedit_window):
     dialog_window.show_all()
     
     
-def shelltext_execute(command_buffer, window):
+def shelltext_execute(command_buffer, selection_watcher):
     startIter, endIter = command_buffer.get_bounds()   
+    source_text = selection_watcher.get_source_text()
     command = command_buffer.get_text(startIter, endIter, False) 
-    print(f'EXECUTE: ${command}')
+    print(source_text)
+    print(command)
+    result_text = apply_shell_command(source_text, command)
+    print(result_text)
+
+
+def apply_shell_command(source_text, command):
+    pass
