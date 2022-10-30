@@ -1,6 +1,7 @@
 import gi
 gi.require_version('Gedit', '3.0')
 gi.require_version('Gtk', '3.0')
+from subprocess import run, PIPE
 
 from gi.repository import GLib, Gio, GObject, Gtk, Gdk, Gedit
 
@@ -236,9 +237,18 @@ def shelltext_execute(command_buffer, selection_watcher):
     command = command_buffer.get_text(startIter, endIter, False) 
     print(source_text)
     print(command)
-    result_text = apply_shell_command(source_text, command)
-    print(result_text)
+    result = apply_shell_command(source_text, command)
+    print(result.returncode)
+    print(str(result.stdout, 'utf-8'))
+    print(str(result.stderr, 'utf-8'))
 
 
 def apply_shell_command(source_text, command):
-    pass
+    return run(command.split(' '), input=bytes(source_text, 'utf-8'), stdout=PIPE, stderr=PIPE, shell=True)
+
+
+# todo
+#   non utf-8 documents
+#   find out what shell=True is actually doing
+#   parse command when shell=False
+#   handle pipes when shell=False
