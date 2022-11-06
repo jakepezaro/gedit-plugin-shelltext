@@ -4,33 +4,25 @@ from subprocess import run, PIPE
 class ParserState:
 
     def __init__(self):
-        self.commands= []
+        self.commands = []
+        self.pipes = [self.commands]
         self.current = ''
         self.quoted = None
 
     def start_quote(self, q):
-        if not self.quoted and q:
-            self.quoted = q
-            self.next_command()
-            return True
+        self.quoted = q
+        self.next_command()
 
-    def end_quote(self, q):
-        if self.quoted and self.quoted == q:
-            self.quoted = None
-            self.next_command()
-            return True
+    def end_quote(self):
+        self.quoted = None
+        self.next_command()
 
-    def end_command(self, is_separator):
-        if not self.quoted and is_separator:
-            self.next_command()
-            return True
-
-    def pipe(self, is_pipe):
-        return False
+    def create_pipe(self):
+        self.commands = []
+        self.pipes.append(self.commands)
 
     def append_command(self, c):
         self.current += c
-        return True
 
     def next_command(self):
         if self.current != '':
@@ -44,18 +36,18 @@ def parse_command(command):
         q = c if c in ['"', "'"] else None
         is_separator = c in [' ', '\n', '\r']
         is_pipe = c == '|'
-        if state.start_quote(q):
-            pass
-        elif state.end_quote(q):
-            pass
-        elif state.end_command(is_separator):
-            pass
-        elif state.pipe(is_pipe):
-            pass
+        if not state.quoted and q:
+            state.start_quote(q)
+        elif state.quoted and state.quoted == q:
+            state.end_quote()
+        elif not state.quoted and is_separator:
+            state.next_command()
+        elif not state.quoted and is_pipe:
+            state.create_pipe()
         else:
             state.append_command(c)
     state.next_command()
-    return [state.commands]
+    return state.pipes
 
 # todo
 #   non utf-8 documents
