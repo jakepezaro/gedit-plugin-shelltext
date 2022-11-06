@@ -4,30 +4,32 @@ from subprocess import run, PIPE
 def parse_command(command):
     commands = []
     current = ''
-    in_quote = False
+    quoted = None
     for c in command:
-       is_quote = c == '"'
-       is_separator = c == ' '
-       if not in_quote and is_quote:
-           in_quote = True
+       q = c if c in ['"', "'"] else None
+       is_separator = c in [' ', '\n', '\r']
+       is_pipe = c == '|'
+       if not quoted and q:
+           quoted = q
            if current.strip() != '':
                commands.append(current)
            current = ''
            continue
-       if in_quote and is_quote:
-           in_quote = False
+       if quoted and quoted == q:
+           quoted = None
            if current != '':
                commands.append(current)
            current = ''
            continue
-       if is_separator and not in_quote:
-           commands.append(current)
+       if is_separator and not quoted:
+           if current != '':
+               commands.append(current)
            current = ''
            continue
        current += c
     if current != '':
         commands.append(current)
-    return commands
+    return [commands]
 
 # todo
 #   non utf-8 documents
