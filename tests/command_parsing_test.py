@@ -27,5 +27,5 @@ def test_CR_is_separator():
 def test_multiple_whitespace_collapsed():
     assert parse_command('pwd  \n \r abc') == [['pwd', 'abc']]
 
-#def test_pipe():
-#    assert parse_command('ls | grep abc') == [['ls'], ['grep', 'abc']]
+def test_pipe():
+    assert parse_command('ls | grep abc') == [['ls'], ['grep', 'abc']]
