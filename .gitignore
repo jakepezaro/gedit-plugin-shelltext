@@ -1,4 +1,4 @@
-shelltext/__pycache__/
+*/__pycache__/
 docs/
-shelltext/.__init__.py.swp
+*/*.swp
 .venv
