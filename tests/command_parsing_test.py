@@ -29,3 +29,6 @@ def test_multiple_whitespace_collapsed():
 
 def test_pipe():
     assert parse_command('ls | grep abc') == [['ls'], ['grep', 'abc']]
+
+def test_quoted_pipe_is_command():
+    assert parse_command('echo "abc|def"') == [['echo', 'abc|def']]
