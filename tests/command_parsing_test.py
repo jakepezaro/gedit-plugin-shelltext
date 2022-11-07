@@ -1,4 +1,5 @@
-from shelltext.command import parse_command
+from shelltext.command import parse_command, run_command
+import re
 
 def test_single_command():
     assert parse_command('pwd') == [['pwd']]
@@ -32,3 +33,20 @@ def test_pipe():
 
 def test_quoted_pipe_is_command():
     assert parse_command('echo "abc|def"') == [['echo', 'abc|def']]
+
+def test_run_command():
+    input_text = strip_input('''
+      |abc
+      |def
+    ''')
+    assert run_command(input_text, [['grep', 'a']], None) == 'abc\n'
+
+FORMATTABLE = re.compile(r'^\s*\|(.*)$')
+
+def strip_input(raw_text: str) -> str:
+    lines = []
+    for line in raw_text.split('\n'):
+        m = FORMATTABLE.match(line)
+        if m:
+            lines.append(m.group(1))
+    return '\n'.join(lines)
