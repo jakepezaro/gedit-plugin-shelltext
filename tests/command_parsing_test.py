@@ -34,12 +34,54 @@ def test_pipe():
 def test_quoted_pipe_is_command():
     assert parse_command('echo "abc|def"') == [['echo', 'abc|def']]
 
-def test_run_command():
+
+def test_run_sed_no_pipe():
+    input_text = strip_input('''
+      |abc
+      |def
+    ''')
+    assert run_command(input_text, [['sed', 's/bc/XX/g']], None) == 'aXX\ndef'
+
+
+def test_run_grep_pipe_cat():
+    input_text = strip_input('''
+      |abc
+      |def
+    ''')
+    assert run_command(input_text, [['grep', 'a'], ['cat']], None) == 'abc\n'
+
+
+def test_run_sed_pipe_cat():
+    input_text = strip_input('''
+      |abc
+      |def
+    ''')
+    assert run_command(input_text, [['sed', 's/ab/XX/g'], ['cat']], None) == 'XXc\ndef'
+
+
+def test_run_command_without_pipe():
     input_text = strip_input('''
       |abc
       |def
     ''')
     assert run_command(input_text, [['grep', 'a']], None) == 'abc\n'
+
+
+def test_run_command_with_pipe():
+    input_text = strip_input('''
+      |abc
+      |def
+    ''')
+    assert run_command(input_text, [['sed', 's/bc/XX/g'], ['grep', 'X']], None) == 'aXX\n'
+
+
+def test_run_command_with_2_pipes():
+    input_text = strip_input('''
+      |abc
+      |abd
+      |def
+    ''')
+    assert run_command(input_text, [['grep', 'd'], ['sed', 's/ab/XX/g']], None) == 'XXd\n'
 
 FORMATTABLE = re.compile(r'^\s*\|(.*)$')
 

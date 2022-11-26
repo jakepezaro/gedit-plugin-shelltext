@@ -52,13 +52,38 @@ def parse_command(command: str) -> List[List[str]]:
 
 
 def run_command(source_text: str, commands: List[List[str]], env: Dict[str, str]) -> str:
-    print(commands[0])
-    p1 = Popen(commands[0], stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    try:
-        outs, errs = p1.communicate(input=bytes(source_text, 'utf-8'), timeout=15)
-    except TimeoutExpired:
-        proc.kill()
-        outs, errs = p1.communicate()
+    processes = []
+    prev_stdout=PIPE
+    for command in commands:
+        print(type(prev_stdout))
+        process = Popen(command, stdin=prev_stdout, stdout=PIPE, stderr=PIPE)
+        processes.append(process)
+        prev_stdout = process.stdout
+
+    print(source_text)
+    processes[0].communicate(input=bytes(source_text, 'utf-8'), timeout=15)
+    for p in processes:
+        if p.wait() != 0:
+            raise Exception(f'{p}, {p.communicate()}')
+        else:
+            print('OK', p)
+    outs, errs = processes[-1].communicate(timeout=15)
+    return str(outs, 'utf-8')
+
+
+def rubbish():
+    cmd_head = Popen(commands[0], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    cmd_tail = cmd_head
+    for command in commands[1:]:
+        cmd_tail = Popen(command, stdin=cmd_tail.stdout, stdout=PIPE, stderr=PIPE)
+    #try:
+    outh, errh = cmd_head.communicate(input=bytes(source_text, 'utf-8'), timeout=15)
+    print(1, outh, errh, cmd_head)
+    outs, errs = cmd_tail.communicate(timeout=15)
+    #print(2, out1, err1, cmd_tail)
+    #except TimeoutExpired:
+    #    proc.kill()
+    #    outs, errs = cmd_head.communicate()
     return str(outs, 'utf-8')
 
 # todo
